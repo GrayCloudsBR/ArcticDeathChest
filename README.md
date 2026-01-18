@@ -1,4 +1,4 @@
-# AntryDeathLoot
+# ArcticDeathChest
 
 A high-quality Minecraft death chest plugin compatible with **Minecraft 1.7.10 to 1.21+**.
 
