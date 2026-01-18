@@ -2,7 +2,6 @@ package dev.arctic.arcticdeathchest.managers;
 
 import dev.arctic.arcticdeathchest.ArcticDeathChest;
 import lombok.extern.java.Log;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -43,7 +42,7 @@ public class MessageManager {
                 String message = plugin.getPluginConfig().getDeathChestMessage()
                     .replace("%player%", player.getName())
                     .replace("%time%", String.valueOf(plugin.getPluginConfig().getChestBreakTime()));
-                broadcast(message);
+                sendMessage(player, message);
             }
         } catch (Exception e) {
             log.warning("Error sending death chest message: " + e.getMessage());
@@ -51,17 +50,17 @@ public class MessageManager {
     }
 
     /**
-     * Send the chest break message
+     * Send the chest break message to a specific player
      */
-    public static void sendBreakMessage() {
+    public static void sendBreakMessage(Player player) {
         if (plugin == null || plugin.getPluginConfig() == null) {
             return;
         }
         
         try {
             String breakMessage = plugin.getPluginConfig().getChestBreakMessage();
-            if (breakMessage != null && !breakMessage.isEmpty()) {
-                broadcast(breakMessage);
+            if (breakMessage != null && !breakMessage.isEmpty() && player != null && player.isOnline()) {
+                sendMessage(player, breakMessage);
             }
         } catch (Exception e) {
             log.warning("Error sending break message: " + e.getMessage());
@@ -69,23 +68,7 @@ public class MessageManager {
     }
 
     /**
-     * Broadcast a message to all players with the plugin prefix
-     */
-    private static void broadcast(String message) {
-        if (message == null || message.isEmpty()) {
-            return;
-        }
-        
-        try {
-            message = getPrefix() + colorize(message);
-            Bukkit.broadcastMessage(message);
-        } catch (Exception e) {
-            log.warning("Error broadcasting message: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Send a message to a specific player
+     * Send a message to a specific player (without prefix)
      * @param player The player to send to
      * @param message The message to send (supports & color codes)
      */

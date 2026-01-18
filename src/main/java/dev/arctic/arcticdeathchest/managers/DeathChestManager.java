@@ -251,12 +251,10 @@ public class DeathChestManager {
             Chest chest = (Chest) block.getState();
             
             // Add items to chest
-            int itemsStored = 0;
             for (ItemStack item : items) {
                 if (item != null && item.getType() != Material.AIR) {
                     try {
                         chest.getInventory().addItem(item);
-                        itemsStored++;
                     } catch (Exception e) {
                         log.warning("Failed to add item to death chest: " + e.getMessage());
                     }
@@ -295,11 +293,6 @@ public class DeathChestManager {
             
             // Schedule chest break
             scheduleChestBreak(normalized, breakTime);
-            
-            log.info("Created death chest for " + playerName + " at " + 
-                     location.getWorld().getName() + " " + location.getBlockX() + 
-                     "," + location.getBlockY() + "," + location.getBlockZ() +
-                     " (" + itemsStored + " items)");
             
             return true;
                      
@@ -395,6 +388,9 @@ public class DeathChestManager {
             return;
         }
         
+        // Get player UUID before cleanup
+        UUID playerUUID = deathChests.get(normalized);
+        
         try {
             Block block = normalized.getBlock();
             if (block.getType() != Material.CHEST) {
@@ -423,7 +419,6 @@ public class DeathChestManager {
             block.setType(Material.AIR);
             
             // 4. Drop items naturally
-            int dropped = 0;
             for (ItemStack item : items) {
                 if (item != null && item.getType() != Material.AIR) {
                     try {
@@ -431,7 +426,6 @@ public class DeathChestManager {
                             normalized.clone().add(0.5, 0.5, 0.5), item);
                         // Reduce velocity for a nicer effect
                         droppedItem.setVelocity(droppedItem.getVelocity().multiply(0.3));
-                        dropped++;
                     } catch (Exception e) {
                         log.warning("Error dropping item from death chest: " + e.getMessage());
                     }
@@ -441,12 +435,13 @@ public class DeathChestManager {
             // 5. Play break sound
             playBreakSound(normalized);
             
-            // 6. Send break message
-            MessageManager.sendBreakMessage();
-            
-            log.info("Death chest broken at " + normalized.getWorld().getName() + 
-                     " " + normalized.getBlockX() + "," + normalized.getBlockY() + 
-                     "," + normalized.getBlockZ() + " (" + dropped + " items dropped)");
+            // 6. Send break message to player if online
+            if (playerUUID != null) {
+                Player player = Bukkit.getPlayer(playerUUID);
+                if (player != null && player.isOnline()) {
+                    MessageManager.sendBreakMessage(player);
+                }
+            }
                      
         } catch (Exception e) {
             log.warning("Error breaking death chest: " + e.getMessage());
