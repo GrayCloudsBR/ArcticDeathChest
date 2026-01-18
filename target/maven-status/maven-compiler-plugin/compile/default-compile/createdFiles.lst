@@ -1,0 +1,10 @@
+dev\arctic\arcticdeathchest\utils\VersionUtils.class
+dev\arctic\arcticdeathchest\config\PluginConfig.class
+dev\arctic\arcticdeathchest\data\DeathChestData.class
+dev\arctic\arcticdeathchest\managers\MessageManager.class
+dev\arctic\arcticdeathchest\config\PluginConfig$PluginConfigBuilder.class
+dev\arctic\arcticdeathchest\managers\DeathChestManager.class
+dev\arctic\arcticdeathchest\data\DeathChestData$DeathChestDataBuilder.class
+dev\arctic\arcticdeathchest\managers\DeathChestManager$1.class
+dev\arctic\arcticdeathchest\managers\HologramManager.class
+dev\arctic\arcticdeathchest\ArcticDeathChest.class

@@ -24,7 +24,7 @@ public class MessageManager {
      */
     private static String getPrefix() {
         if (plugin == null || plugin.getPluginConfig() == null) {
-            return ChatColor.WHITE + "[" + ChatColor.DARK_AQUA + "AntryDeathLoot" + ChatColor.WHITE + "] ";
+            return ChatColor.WHITE + "[" + ChatColor.DARK_AQUA + "ArcticDeathChest" + ChatColor.WHITE + "] ";
         }
         return colorize(plugin.getPluginConfig().getPrefix());
     }

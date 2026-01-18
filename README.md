@@ -28,18 +28,18 @@ When a player dies, their items are stored in a falling chest that descends from
 
 ## Installation
 
-1. Download the latest `AntryDeathLoot.jar` from releases
+1. Download the latest `ArcticDeathChest.jar` from releases
 2. Place it in your server's `plugins` folder
 3. Restart your server
-4. Configure in `plugins/AntryDeathLoot/config.yml`
+4. Configure in `plugins/ArcticDeathChest/config.yml`
 
 ## Commands
 
 | Command | Description | Permission |
 |---------|-------------|------------|
-| `/antrydeatloot` | Show plugin help | None |
-| `/antrydeatloot reload` | Reload configuration | `antrydeatloot.admin` |
-| `/antrydeatloot info` | Show plugin info | None |
+| `/arcticdeathchest` | Show plugin help | None |
+| `/arcticdeathchest reload` | Reload configuration | `arcticdeathchest.admin` |
+| `/arcticdeathchest info` | Show plugin info | None |
 
 **Aliases**: `/adl`, `/deathchest`, `/dc`
 
@@ -47,16 +47,16 @@ When a player dies, their items are stored in a falling chest that descends from
 
 | Permission | Description | Default |
 |------------|-------------|---------|
-| `antrydeatloot.*` | All permissions | OP |
-| `antrydeatloot.create` | Death chest created on death | Everyone |
-| `antrydeatloot.break` | Can break death chests early | Everyone |
-| `antrydeatloot.admin` | Admin commands (reload) | OP |
+| `arcticdeathchest.*` | All permissions | OP |
+| `arcticdeathchest.create` | Death chest created on death | Everyone |
+| `arcticdeathchest.break` | Can break death chests early | Everyone |
+| `arcticdeathchest.admin` | Admin commands (reload) | OP |
 
 ## Configuration
 
 ```yaml
 # Plugin prefix for messages
-prefix: "&f&l[&3&lAntryDeathLoot&f&l] "
+prefix: "&f&l[&3&lArcticDeathChest&f&l] "
 
 # Time before chest breaks (seconds)
 chest-break-time: 10
@@ -91,13 +91,13 @@ hologram:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/AntryDeathLoot.git
-cd AntryDeathLoot
+git clone https://github.com/yourusername/ArcticDeathChest.git
+cd ArcticDeathChest
 
 # Build with Maven
 mvn clean package
 
-# The jar will be in target/AntryDeathLoot-1.1.0.jar
+# The jar will be in target/ArcticDeathChest-1.1.0.jar
 ```
 
 ### Requirements

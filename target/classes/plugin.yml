@@ -1,5 +1,5 @@
 name: ArcticDeathChest
-version: '${project.version}'
+version: '1.1.0'
 main: dev.arctic.arcticdeathchest.ArcticDeathChest
 # Note: api-version is intentionally omitted for 1.7.10-1.12 compatibility
 # The plugin handles version differences internally

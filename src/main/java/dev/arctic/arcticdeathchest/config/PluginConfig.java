@@ -8,7 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import java.util.logging.Logger;
 
 /**
- * Immutable configuration class for AntryDeathLoot.
+ * Immutable configuration class for ArcticDeathChest.
  * Uses Lombok for boilerplate reduction.
  */
 @Data
@@ -49,7 +49,7 @@ public class PluginConfig {
      */
     public static PluginConfig fromFileConfiguration(@NonNull FileConfiguration config, Logger logger) {
         // Read values with defaults
-        String prefix = config.getString("prefix", "&f&l[&3&lAntryDeathLoot&f&l] ");
+        String prefix = config.getString("prefix", "&f&l[&3&lArcticDeathChest&f&l] ");
         int chestBreakTime = config.getInt("chest-break-time", 10);
         boolean allowInstantBreak = config.getBoolean("allow-instant-break", true);
         boolean announceDeathChest = config.getBoolean("announce-death-chest", true);

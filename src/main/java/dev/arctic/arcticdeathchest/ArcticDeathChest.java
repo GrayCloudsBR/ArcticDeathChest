@@ -68,7 +68,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
             // Register events
             getServer().getPluginManager().registerEvents(this, this);
             
-            log.info("AntryDeathLoot v" + getDescription().getVersion() + " has been enabled!");
+            log.info("ArcticDeathChest v" + getDescription().getVersion() + " has been enabled!");
             log.info("Configuration loaded - Break time: " + pluginConfig.getChestBreakTime() + "s, " +
                     "Holograms: " + (pluginConfig.isHologramEnabled() ? "enabled" : "disabled") + ", " +
                     "Falling chests: " + (pluginConfig.isFallingChestEnabled() ? "enabled" : "disabled"));
@@ -79,7 +79,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
             }
                     
         } catch (Exception e) {
-            log.severe("Failed to enable AntryDeathLoot: " + e.getMessage());
+            log.severe("Failed to enable ArcticDeathChest: " + e.getMessage());
             e.printStackTrace();
             setEnabled(false);
         }
@@ -92,7 +92,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
         }
         
         // Check permission
-        if (!event.getEntity().hasPermission("antrydeatloot.create")) {
+        if (!event.getEntity().hasPermission("arcticdeathchest.create")) {
             return;
         }
         
@@ -147,7 +147,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
                 }
                 
                 // Check permission to break
-                if (!event.getPlayer().hasPermission("antrydeatloot.break")) {
+                if (!event.getPlayer().hasPermission("arcticdeathchest.break")) {
                     MessageManager.sendMessage(event.getPlayer(), "&cYou don't have permission to break death chests!");
                     return;
                 }
@@ -177,7 +177,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
                     return;
                 }
                 
-                if (!event.getPlayer().hasPermission("antrydeatloot.break")) {
+                if (!event.getPlayer().hasPermission("arcticdeathchest.break")) {
                     return;
                 }
                 
@@ -190,20 +190,20 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
     
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!command.getName().equalsIgnoreCase("antrydeatloot")) {
+        if (!command.getName().equalsIgnoreCase("arcticdeathchest")) {
             return false;
         }
         
         if (args.length == 0) {
-            sender.sendMessage(MessageManager.colorize("&3&lAntryDeathLoot &fv" + getDescription().getVersion()));
-            sender.sendMessage(MessageManager.colorize("&7/antrydeatloot reload &f- Reload configuration"));
-            sender.sendMessage(MessageManager.colorize("&7/antrydeatloot info &f- Show plugin info"));
+            sender.sendMessage(MessageManager.colorize("&3&lArcticDeathChest &fv" + getDescription().getVersion()));
+            sender.sendMessage(MessageManager.colorize("&7/arcticdeathchest reload &f- Reload configuration"));
+            sender.sendMessage(MessageManager.colorize("&7/arcticdeathchest info &f- Show plugin info"));
             return true;
         }
         
         switch (args[0].toLowerCase()) {
             case "reload":
-                if (!sender.hasPermission("antrydeatloot.admin")) {
+                if (!sender.hasPermission("arcticdeathchest.admin")) {
                     sender.sendMessage(MessageManager.colorize("&cYou don't have permission to do this!"));
                     return true;
                 }
@@ -214,7 +214,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
                 break;
                 
             case "info":
-                sender.sendMessage(MessageManager.colorize("&3&lAntryDeathLoot Info"));
+                sender.sendMessage(MessageManager.colorize("&3&lArcticDeathChest Info"));
                 sender.sendMessage(MessageManager.colorize("&7Version: &f" + getDescription().getVersion()));
                 sender.sendMessage(MessageManager.colorize("&7Active Chests: &f" + deathChestManager.getActiveChestCount()));
                 sender.sendMessage(MessageManager.colorize("&7Server Version: &f" + VersionUtils.getVersionInfo()));
@@ -222,7 +222,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
                 break;
                 
             default:
-                sender.sendMessage(MessageManager.colorize("&cUnknown subcommand. Use /antrydeatloot for help."));
+                sender.sendMessage(MessageManager.colorize("&cUnknown subcommand. Use /arcticdeathchest for help."));
         }
         
         return true;
@@ -243,7 +243,7 @@ public final class ArcticDeathChest extends JavaPlugin implements Listener {
             HologramManager.cleanup();
             MessageManager.cleanup();
             
-            log.info("AntryDeathLoot has been disabled successfully!");
+            log.info("ArcticDeathChest has been disabled successfully!");
         } catch (Exception e) {
             log.severe("Error during plugin shutdown: " + e.getMessage());
             e.printStackTrace();

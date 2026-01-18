@@ -361,7 +361,7 @@ public class VersionUtils {
      * Log version compatibility information
      */
     public static void logVersionInfo() {
-        logger.info("=== AntryDeathLoot Version Compatibility ===");
+        logger.info("=== ArcticDeathChest Version Compatibility ===");
         logger.info("Detected Minecraft version: " + getMinecraftVersion());
         logger.info("Bukkit version: " + BUKKIT_VERSION);
         logger.info("Full version string: " + VERSION);
