@@ -1,4 +1,4 @@
-package dev.antry.antrydeathloot.data;
+package dev.arctic.arcticdeathchest.data;
 
 import lombok.Builder;
 import lombok.Data;

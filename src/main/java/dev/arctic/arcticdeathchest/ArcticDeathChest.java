@@ -1,13 +1,15 @@
-package dev.antry.antrydeathloot;
+package dev.arctic.arcticdeathchest;
 
-import dev.antry.antrydeathloot.config.PluginConfig;
-import dev.antry.antrydeathloot.managers.DeathChestManager;
-import dev.antry.antrydeathloot.managers.MessageManager;
-import dev.antry.antrydeathloot.managers.HologramManager;
-import dev.antry.antrydeathloot.utils.VersionUtils;
+import dev.arctic.arcticdeathchest.config.PluginConfig;
+import dev.arctic.arcticdeathchest.managers.DeathChestManager;
+import dev.arctic.arcticdeathchest.managers.MessageManager;
+import dev.arctic.arcticdeathchest.managers.HologramManager;
+import dev.arctic.arcticdeathchest.utils.VersionUtils;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -23,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Log
-public final class AntryDeathLoot extends JavaPlugin implements Listener {
+public final class ArcticDeathChest extends JavaPlugin implements Listener {
     
     @Getter
     private DeathChestManager deathChestManager;
@@ -31,13 +33,20 @@ public final class AntryDeathLoot extends JavaPlugin implements Listener {
     @Getter
     private PluginConfig pluginConfig;
     
-    private boolean isShuttingDown = false;
+    private volatile boolean isShuttingDown = false;
 
     @Override
     public void onEnable() {
         try {
             // Log version compatibility information
             VersionUtils.logVersionInfo();
+            
+            // Check minimum version requirements
+            if (!VersionUtils.isVersionSupported()) {
+                getLogger().severe("This plugin requires Minecraft 1.7.10 or higher!");
+                setEnabled(false);
+                return;
+            }
             
             // Save default config
             saveDefaultConfig();
@@ -63,6 +72,11 @@ public final class AntryDeathLoot extends JavaPlugin implements Listener {
             log.info("Configuration loaded - Break time: " + pluginConfig.getChestBreakTime() + "s, " +
                     "Holograms: " + (pluginConfig.isHologramEnabled() ? "enabled" : "disabled") + ", " +
                     "Falling chests: " + (pluginConfig.isFallingChestEnabled() ? "enabled" : "disabled"));
+            
+            // Log version-specific feature availability
+            if (!VersionUtils.supportsFeature("armor_stands")) {
+                log.info("Note: Holograms are disabled on this version (requires 1.8+)");
+            }
                     
         } catch (Exception e) {
             log.severe("Failed to enable AntryDeathLoot: " + e.getMessage());
@@ -71,34 +85,47 @@ public final class AntryDeathLoot extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (isShuttingDown || deathChestManager == null) {
+        if (isShuttingDown || deathChestManager == null || pluginConfig == null) {
+            return;
+        }
+        
+        // Check permission
+        if (!event.getEntity().hasPermission("antrydeatloot.create")) {
             return;
         }
         
         try {
-            // Create a copy of the drops before clearing them
-            List<ItemStack> drops = new ArrayList<>(event.getDrops());
+            // Get original drops
+            List<ItemStack> originalDrops = new ArrayList<>(event.getDrops());
+            
+            // Only create chest if there are items to store
+            if (originalDrops.isEmpty()) {
+                return;
+            }
             
             // Clear default drops
             event.getDrops().clear();
             
             // Create death chest with the copied drops
-            deathChestManager.createDeathChest(
+            boolean success = deathChestManager.createDeathChest(
                 event.getEntity(),
                 event.getEntity().getLocation(),
-                drops
+                originalDrops
             );
             
-            // Send message
-            MessageManager.sendDeathChestMessage(event.getEntity());
+            if (success) {
+                // Send message
+                MessageManager.sendDeathChestMessage(event.getEntity());
+            } else {
+                // Restore drops if chest creation failed
+                event.getDrops().addAll(originalDrops);
+                log.warning("Failed to create death chest for " + event.getEntity().getName() + ", restoring drops");
+            }
         } catch (Exception e) {
             log.warning("Error handling player death for " + event.getEntity().getName() + ": " + e.getMessage());
-            // Restore drops if chest creation failed
-            if (event.getDrops().isEmpty() && !event.getDrops().isEmpty()) {
-                event.getDrops().addAll(event.getDrops());
-            }
+            e.printStackTrace();
         }
     }
 
@@ -113,7 +140,15 @@ public final class AntryDeathLoot extends JavaPlugin implements Listener {
             if (deathChestManager.isDeathChest(location)) {
                 event.setCancelled(true);
                 
+                // Check if player can break this chest
                 if (!pluginConfig.isAllowInstantBreak()) {
+                    MessageManager.sendMessage(event.getPlayer(), "&cYou cannot break this death chest!");
+                    return;
+                }
+                
+                // Check permission to break
+                if (!event.getPlayer().hasPermission("antrydeatloot.break")) {
+                    MessageManager.sendMessage(event.getPlayer(), "&cYou don't have permission to break death chests!");
                     return;
                 }
                 
@@ -141,11 +176,56 @@ public final class AntryDeathLoot extends JavaPlugin implements Listener {
                 if (!pluginConfig.isAllowInstantBreak()) {
                     return;
                 }
+                
+                if (!event.getPlayer().hasPermission("antrydeatloot.break")) {
+                    return;
+                }
+                
                 event.setInstaBreak(true);
             }
         } catch (Exception e) {
             log.warning("Error handling block damage: " + e.getMessage());
         }
+    }
+    
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (!command.getName().equalsIgnoreCase("antrydeatloot")) {
+            return false;
+        }
+        
+        if (args.length == 0) {
+            sender.sendMessage(MessageManager.colorize("&3&lAntryDeathLoot &fv" + getDescription().getVersion()));
+            sender.sendMessage(MessageManager.colorize("&7/antrydeatloot reload &f- Reload configuration"));
+            sender.sendMessage(MessageManager.colorize("&7/antrydeatloot info &f- Show plugin info"));
+            return true;
+        }
+        
+        switch (args[0].toLowerCase()) {
+            case "reload":
+                if (!sender.hasPermission("antrydeatloot.admin")) {
+                    sender.sendMessage(MessageManager.colorize("&cYou don't have permission to do this!"));
+                    return true;
+                }
+                
+                reloadConfig();
+                this.pluginConfig = PluginConfig.fromFileConfiguration(getConfig(), getLogger());
+                sender.sendMessage(MessageManager.colorize("&aConfiguration reloaded successfully!"));
+                break;
+                
+            case "info":
+                sender.sendMessage(MessageManager.colorize("&3&lAntryDeathLoot Info"));
+                sender.sendMessage(MessageManager.colorize("&7Version: &f" + getDescription().getVersion()));
+                sender.sendMessage(MessageManager.colorize("&7Active Chests: &f" + deathChestManager.getActiveChestCount()));
+                sender.sendMessage(MessageManager.colorize("&7Server Version: &f" + VersionUtils.getVersionInfo()));
+                sender.sendMessage(MessageManager.colorize("&7Holograms Supported: &f" + VersionUtils.supportsFeature("armor_stands")));
+                break;
+                
+            default:
+                sender.sendMessage(MessageManager.colorize("&cUnknown subcommand. Use /antrydeatloot for help."));
+        }
+        
+        return true;
     }
 
     @Override

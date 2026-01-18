@@ -1,7 +1,0 @@
-name: AntryDeathLoot
-version: 'v1.0'
-main: dev.antry.antrydeathloot.AntryDeathLoot
-depend: [ProtocolLib]
-author: Antry
-description: A plugin that creates death chests when players die
-website: https://github.com/yourusername/AntryDeathLoot

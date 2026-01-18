@@ -4,12 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>dev.antry</groupId>
-  <artifactId>AntryDeathLoot</artifactId>
-  <version>v1.0</version>
+  <groupId>dev.arctic</groupId>
+  <artifactId>ArcticDeathChest</artifactId>
+  <version>1.1.0</version>
   <packaging>jar</packaging>
 
-  <name>AntryDeathLoot</name>
+  <name>ArcticDeathChest</name>
+  <description>A death chest plugin compatible with Minecraft 1.7.10 to 1.21+</description>
 
   <properties>
     <java.version>1.8</java.version>
@@ -44,8 +45,24 @@
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <minimizeJar>false</minimizeJar>
+            </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
       </plugin>
     </plugins>
     <resources>
@@ -57,40 +74,32 @@
   </build>
 
   <repositories>
-      <repository>
-          <id>papermc-repo</id>
-          <url>https://repo.papermc.io/repository/maven-public/</url>
-      </repository>
-      <repository>
-          <id>sonatype</id>
-          <url>https://oss.sonatype.org/content/groups/public/</url>
-      </repository>
-      <repository>
-          <id>dmulloy2-repo</id>
-          <url>https://repo.dmulloy2.net/repository/public/</url>
-      </repository>
+    <repository>
+      <id>spigot-repo</id>
+      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+    </repository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/groups/public/</url>
+    </repository>
   </repositories>
 
   <dependencies>
-      <!-- Using 1.8.8 API for better compatibility with 1.7.10 -->
-      <dependency>
-          <groupId>org.spigotmc</groupId>
-          <artifactId>spigot-api</artifactId>
-          <version>1.8.8-R0.1-SNAPSHOT</version>
-          <scope>provided</scope>
-      </dependency>
-      <!-- Using older ProtocolLib version for 1.7.10 compatibility -->
-      <dependency>
-          <groupId>com.comphenix.protocol</groupId>
-          <artifactId>ProtocolLib</artifactId>
-          <version>4.8.0</version>
-          <scope>provided</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.projectlombok</groupId>
-          <artifactId>lombok</artifactId>
-          <version>1.18.30</version>
-          <scope>provided</scope>
-      </dependency>
+    <!-- 
+      Using Spigot 1.8.8 API for maximum compatibility with older versions.
+      The plugin uses version detection to handle differences between 1.7.10-1.21+
+    -->
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot-api</artifactId>
+      <version>1.8.8-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.30</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 </project>

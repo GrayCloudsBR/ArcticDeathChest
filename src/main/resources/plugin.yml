@@ -1,7 +1,43 @@
 name: AntryDeathLoot
 version: '${project.version}'
-main: dev.antry.antrydeathloot.AntryDeathLoot
-depend: [ProtocolLib]
+main: dev.arctic.arcticdeathchest.ArcticDeathChest
+# Note: api-version is intentionally omitted for 1.7.10-1.12 compatibility
+# The plugin handles version differences internally
 author: Antry
-description: A plugin that creates death chests when players die
-website: https://github.com/yourusername/AntryDeathLoot
+description: A plugin that creates death chests when players die with falling animations and holograms
+website: https://github.com/GrayCloudsBR/ArcticDeathChest
+
+# Soft dependencies - plugin will work without these but can integrate if present
+softdepend: []
+
+# Load order
+load: POSTWORLD
+
+# Commands
+commands:
+  antrydeatloot:
+    description: Main command for AntryDeathLoot plugin
+    usage: /antrydeatloot [reload|info]
+    aliases: [adl, deathchest, dc]
+
+# Permissions
+permissions:
+  antrydeatloot.*:
+    description: Gives access to all AntryDeathLoot features
+    default: op
+    children:
+      antrydeatloot.create: true
+      antrydeatloot.break: true
+      antrydeatloot.admin: true
+
+  antrydeatloot.create:
+    description: Allows a player to have a death chest created when they die
+    default: true
+
+  antrydeatloot.break:
+    description: Allows a player to manually break death chests
+    default: true
+
+  antrydeatloot.admin:
+    description: Allows access to admin commands (reload, etc)
+    default: op

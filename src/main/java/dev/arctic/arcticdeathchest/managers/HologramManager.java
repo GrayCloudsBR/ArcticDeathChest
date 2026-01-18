@@ -1,7 +1,7 @@
-package dev.antry.antrydeathloot.managers;
+package dev.arctic.arcticdeathchest.managers;
 
-import dev.antry.antrydeathloot.AntryDeathLoot;
-import dev.antry.antrydeathloot.utils.VersionUtils;
+import dev.arctic.arcticdeathchest.ArcticDeathChest;
+import dev.arctic.arcticdeathchest.utils.VersionUtils;
 import lombok.extern.java.Log;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -13,26 +13,51 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
+/**
+ * Manager for creating and handling hologram displays above death chests.
+ * Uses ArmorStands with custom names for compatibility across versions.
+ * Note: ArmorStands are only available in Minecraft 1.8+
+ */
 @Log
 public class HologramManager {
-    private static AntryDeathLoot plugin;
+    private static ArcticDeathChest plugin;
     private static final Map<Location, List<ArmorStand>> activeHolograms = new ConcurrentHashMap<>();
+    private static boolean hologramsSupported = false;
 
-    public static void initialize(AntryDeathLoot main) {
+    public static void initialize(ArcticDeathChest main) {
         plugin = main;
-        log.info("HologramManager initialized");
+        
+        // Check if ArmorStands are supported
+        hologramsSupported = VersionUtils.supportsFeature("armor_stands");
+        
+        if (!hologramsSupported) {
+            log.info("HologramManager initialized - Holograms DISABLED (requires Minecraft 1.8+)");
+        } else {
+            log.info("HologramManager initialized - Holograms ENABLED");
+        }
+    }
+    
+    /**
+     * Check if holograms are supported on this server version
+     */
+    public static boolean isSupported() {
+        return hologramsSupported;
     }
 
+    /**
+     * Create a hologram above a death chest
+     * @param location The location of the chest
+     * @param player The player who owns the chest
+     * @param seconds Initial countdown seconds
+     * @return List of ArmorStands forming the hologram, or empty list if not supported
+     */
     public static List<ArmorStand> createHologram(Location location, Player player, int seconds) {
         List<ArmorStand> hologramLines = new ArrayList<>();
         
-        if (plugin == null || plugin.getPluginConfig() == null || !plugin.getPluginConfig().isHologramEnabled()) {
-            return hologramLines;
-        }
-        
-        // Check if ArmorStands are supported (not available in 1.7.10)
-        if (!VersionUtils.supportsFeature("armor_stands")) {
-            log.info("Holograms are not supported in Minecraft 1.7.10 - ArmorStands were added in 1.8");
+        // Check all prerequisites
+        if (!hologramsSupported || plugin == null || plugin.getPluginConfig() == null || 
+            !plugin.getPluginConfig().isHologramEnabled() || location == null || 
+            location.getWorld() == null || player == null) {
             return hologramLines;
         }
         
@@ -40,10 +65,12 @@ public class HologramManager {
             double height = plugin.getPluginConfig().getHologramHeight();
             double lineSpacing = plugin.getPluginConfig().getHologramLineSpacing();
             
-            Location holoLoc = location.getBlock().getLocation().add(0.5, height, 0.5);
+            // Position hologram at center of block, above chest
+            Location holoLoc = location.getBlock().getLocation().add(0.5, height + 1.0, 0.5);
             holoLoc.setYaw(0);
             holoLoc.setPitch(0);
             
+            // Create first line (player name)
             String firstLine = plugin.getPluginConfig().getHologramFirstLine()
                                    .replace("%player%", player.getName());
             firstLine = ChatColor.translateAlternateColorCodes('&', firstLine);
@@ -52,6 +79,7 @@ public class HologramManager {
                 hologramLines.add(firstStand);
             }
             
+            // Create second line (timer)
             String secondLine = plugin.getPluginConfig().getHologramSecondLine()
                                     .replace("%seconds%", String.valueOf(seconds));
             secondLine = ChatColor.translateAlternateColorCodes('&', secondLine);
@@ -76,6 +104,9 @@ public class HologramManager {
         return hologramLines;
     }
 
+    /**
+     * Spawn a single hologram line at the specified location
+     */
     private static ArmorStand spawnHologramLine(Location location, String text) {
         try {
             if (location.getWorld() == null) {
@@ -85,16 +116,31 @@ public class HologramManager {
             
             ArmorStand hologram = location.getWorld().spawn(location, ArmorStand.class);
             
-            // Make the armor stand a perfect hologram
+            // Configure ArmorStand as hologram - use try-catch for version compatibility
             hologram.setVisible(false);
             hologram.setGravity(false);
-            hologram.setCanPickupItems(false);
             hologram.setCustomName(text);
             hologram.setCustomNameVisible(true);
-            hologram.setMarker(true);
-            hologram.setSmall(true);
-            hologram.setBasePlate(false);
-            hologram.setArms(false);
+            
+            // These methods might not exist in older versions
+            try {
+                hologram.setCanPickupItems(false);
+            } catch (NoSuchMethodError ignored) {
+                // Method doesn't exist in this version
+            }
+            
+            // setMarker, setSmall, setBasePlate, setArms were added in 1.8.1
+            if (VersionUtils.supportsArmorStandMarker()) {
+                try {
+                    hologram.setMarker(true);
+                    hologram.setSmall(true);
+                    hologram.setBasePlate(false);
+                    hologram.setArms(false);
+                } catch (NoSuchMethodError e) {
+                    // Methods don't exist in this version
+                    log.fine("Some ArmorStand methods not available: " + e.getMessage());
+                }
+            }
             
             return hologram;
         } catch (Exception e) {
@@ -103,6 +149,9 @@ public class HologramManager {
         }
     }
 
+    /**
+     * Remove a hologram (list of ArmorStands)
+     */
     public static void removeHologram(List<ArmorStand> hologramLines) {
         if (hologramLines == null) {
             return;
@@ -111,9 +160,16 @@ public class HologramManager {
         try {
             int removed = 0;
             for (ArmorStand stand : hologramLines) {
-                if (stand != null && stand.isValid()) {
-                    stand.remove();
-                    removed++;
+                if (stand != null) {
+                    try {
+                        if (stand.isValid() && !stand.isDead()) {
+                            stand.remove();
+                            removed++;
+                        }
+                    } catch (Exception e) {
+                        // Entity might already be removed
+                        log.fine("Could not remove armor stand: " + e.getMessage());
+                    }
                 }
             }
             hologramLines.clear();
@@ -126,14 +182,18 @@ public class HologramManager {
         }
     }
 
+    /**
+     * Update the timer display on a hologram
+     */
     public static void updateTimer(List<ArmorStand> hologramLines, int seconds) {
-        if (hologramLines == null || hologramLines.size() < 2 || plugin == null || plugin.getPluginConfig() == null) {
+        if (hologramLines == null || hologramLines.size() < 2 || 
+            plugin == null || plugin.getPluginConfig() == null) {
             return;
         }
         
         try {
             ArmorStand timerLine = hologramLines.get(1);
-            if (timerLine != null && timerLine.isValid()) {
+            if (timerLine != null && timerLine.isValid() && !timerLine.isDead()) {
                 String secondLine = plugin.getPluginConfig().getHologramSecondLine()
                                         .replace("%seconds%", String.valueOf(seconds));
                 secondLine = ChatColor.translateAlternateColorCodes('&', secondLine);
@@ -144,6 +204,9 @@ public class HologramManager {
         }
     }
     
+    /**
+     * Normalize a location to block coordinates for map key consistency
+     */
     private static Location normalizeLocation(Location loc) {
         if (loc == null || loc.getWorld() == null) {
             return null;
@@ -156,17 +219,25 @@ public class HologramManager {
      */
     public static void cleanup() {
         try {
-            log.info("Cleaning up " + activeHolograms.size() + " active holograms...");
+            int count = activeHolograms.size();
+            if (count > 0) {
+                log.info("Cleaning up " + count + " active holograms...");
+            }
             
             for (List<ArmorStand> hologram : activeHolograms.values()) {
                 removeHologram(hologram);
             }
             activeHolograms.clear();
             
-            log.info("Hologram cleanup completed.");
+            if (count > 0) {
+                log.info("Hologram cleanup completed.");
+            }
         } catch (Exception e) {
             log.severe("Error during hologram cleanup: " + e.getMessage());
             e.printStackTrace();
+            
+            // Force clear as fallback
+            activeHolograms.clear();
         }
     }
     
@@ -191,4 +262,4 @@ public class HologramManager {
     public static int getActiveHologramCount() {
         return activeHolograms.size();
     }
-} 
+}
